@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -7,13 +8,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        cream: '#f5f1ea',
-        'cream-2': '#ebe5d8',
-        ink: '#1a1815',
-        'ink-2': '#2a2724',
-        muted: '#6b6660',
-        accent: '#d96b3c',
-        'accent-dark': '#a8451f',
+        // Couleurs liées aux variables CSS — elles changent automatiquement avec le thème
+        cream: 'rgb(var(--color-cream) / <alpha-value>)',
+        'cream-2': 'rgb(var(--color-cream-2) / <alpha-value>)',
+        ink: 'rgb(var(--color-ink) / <alpha-value>)',
+        'ink-2': 'rgb(var(--color-ink-2) / <alpha-value>)',
+        muted: 'rgb(var(--color-muted) / <alpha-value>)',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        'accent-dark': 'rgb(var(--color-accent-dark) / <alpha-value>)',
+        // Couleurs fixes (toujours claires, pour textes sur fond accent)
+        'on-accent': '#fef9f3',
       },
       fontFamily: {
         display: ['Fraunces', 'serif'],
