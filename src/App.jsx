@@ -218,14 +218,14 @@ function ProjectCover({ project, large = false }) {
   const cover = COVERS[project.cover] || COVERS.warm
   return (
     <div
-      className={`project-cover ${large ? 'aspect-[16/10]' : 'aspect-[4/3]'} w-full flex items-end p-6 md:p-10`}
+      className={`project-cover ${large ? 'aspect-[3/2] md:aspect-[16/6]' : 'aspect-[16/9]'} w-full flex items-end p-6 md:p-8`}
       style={{ background: cover.gradient }}
     >
       <div className="w-full">
         <div className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-white/80 mb-2">
           {project.year} · {project.id}
         </div>
-        <div className="font-display text-3xl md:text-5xl font-medium text-white leading-tight">
+        <div className="font-display text-2xl md:text-4xl font-medium text-white leading-tight">
           {project.title}
         </div>
       </div>
