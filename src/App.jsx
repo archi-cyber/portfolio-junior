@@ -222,12 +222,6 @@ function ProjectCover({ project, large = false }) {
       style={{ background: cover.gradient }}
     >
       <div className="w-full">
-        <div
-          aria-hidden
-          className="absolute top-6 right-6 md:top-10 md:right-10 text-7xl md:text-9xl opacity-90 select-none"
-        >
-          {project.icon}
-        </div>
         <div className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-white/80 mb-2">
           {project.year} · {project.id}
         </div>
