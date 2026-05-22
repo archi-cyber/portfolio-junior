@@ -23,9 +23,9 @@ Si Node n'est pas installé, télécharge-le sur [nodejs.org](https://nodejs.org
 npm install
 
 # 2. Lancer le serveur de développement
-npm run dev
+npm run 
 ```
-
+dd
 Le site sera accessible sur **http://localhost:5173**
 
 ### Construire pour la production
