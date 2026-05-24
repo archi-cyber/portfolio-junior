@@ -83,17 +83,45 @@ function useReveal() {
   useEffect(() => {
     const el = ref.current
     if (!el) return
+
+    // Si l'élément est déjà visible au montage, révéler immédiatement.
+    // Évite que les sections au-dessus de la ligne de pliure restent à opacity:0
+    // sur les chargements rapides ou les recharges après un scroll.
+    const rect = el.getBoundingClientRect()
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      el.classList.add('is-visible')
+      return
+    }
+
+    // Filet de sécurité : si quelque chose bloque l'observer (mobile capricieux),
+    // on force la visibilité après 1.2 s.
+    const fallback = setTimeout(() => {
+      el.classList.add('is-visible')
+    }, 1200)
+
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-visible')
-          obs.unobserve(e.target)
-        }
-      }),
-      { threshold: 0.1 },
+      (entries) =>
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-visible')
+            clearTimeout(fallback)
+            obs.unobserve(e.target)
+          }
+        }),
+      {
+        // threshold à 0 + rootMargin négatif en bas = se déclenche dès que
+        // ~50px de l'élément entrent par le bas du viewport. Fiable sur mobile
+        // même pour des sections très hautes (ex: 18 projets en colonne unique).
+        threshold: 0,
+        rootMargin: '0px 0px -50px 0px',
+      },
     )
     obs.observe(el)
-    return () => obs.disconnect()
+
+    return () => {
+      clearTimeout(fallback)
+      obs.disconnect()
+    }
   }, [])
   return ref
 }
