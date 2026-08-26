@@ -11,6 +11,14 @@ import {
 } from './data.js'
 
 /* ============================================================
+   CONSTANTES
+   ============================================================ */
+
+// Hauteur de la barre de navigation fixe. Sert de décalage au défilement
+// pour que le titre de section ne se retrouve pas caché dessous.
+const NAV_OFFSET = 84
+
+/* ============================================================
    CONTEXTES — Thème & Langue
    ============================================================ */
 
@@ -58,21 +66,100 @@ function AppProvider({ children }) {
 }
 
 /* ============================================================
-   ROUTAGE — hash-based, parfait pour GitHub Pages
+   ROUTAGE — hash-based, compatible GitHub Pages
+
+   Format des routes :
+     #/                 → accueil
+     #/#about           → accueil, ancré sur la section "about"
+     #/project/spe-store → page de détail d'un projet
+
+   ⚠️ CORRECTIF PRINCIPAL
+   Le navigateur ne sait pas résoudre "#/#about" comme une ancre : il cherche
+   un élément dont l'id vaut littéralement "/#about", qui n'existe pas. Il faut
+   donc extraire nous-mêmes le nom de la section et faire défiler à la main.
    ============================================================ */
+
+// Sépare la route en chemin + section : '#/#about' → { path: '/', section: 'about' }
+function parseRoute(hash) {
+  const raw = (hash || '#/').replace(/^#/, '')      // '/' | '/#about' | '/project/xyz'
+  const hashIndex = raw.indexOf('#')
+  if (hashIndex === -1) return { path: raw || '/', section: null }
+  return {
+    path: raw.slice(0, hashIndex) || '/',
+    section: raw.slice(hashIndex + 1) || null,
+  }
+}
 
 function useHashRoute() {
   const [route, setRoute] = useState(() => window.location.hash || '#/')
+
   useEffect(() => {
     const onChange = () => setRoute(window.location.hash || '#/')
     window.addEventListener('hashchange', onChange)
     return () => window.removeEventListener('hashchange', onChange)
   }, [])
-  useEffect(() => { window.scrollTo(0, 0) }, [route])
+
   return route
 }
 
+// Fait défiler jusqu'à une section, avec le décalage de la barre de navigation.
+// Renvoie false si l'élément n'est pas encore dans le DOM.
+function scrollToSection(id, smooth = true) {
+  const el = document.getElementById(id)
+  if (!el) return false
+  const top = el.getBoundingClientRect().top + window.scrollY - NAV_OFFSET
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior: smooth && !prefersReducedMotion() ? 'smooth' : 'auto',
+  })
+  return true
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+}
+
+/* ⚠️ CORRECTIF n°2
+   L'ancien code appelait window.scrollTo(0, 0) à CHAQUE changement de route.
+   Même si l'ancre avait fonctionné, ce défilement l'aurait immédiatement annulée.
+   On ne remonte donc en haut que lorsqu'il n'y a pas de section ciblée. */
+function useScrollBehavior(route) {
+  useEffect(() => {
+    const { section } = parseRoute(route)
+
+    if (!section) {
+      window.scrollTo({ top: 0, behavior: 'auto' })
+      return
+    }
+
+    // Si l'on arrive depuis une page de détail, la page d'accueil doit d'abord
+    // être montée. On réessaie sur quelques trames avant d'abandonner.
+    let cancelled = false
+    let attempts = 0
+    const tryScroll = () => {
+      if (cancelled) return
+      if (scrollToSection(section)) return
+      if (++attempts < 30) requestAnimationFrame(tryScroll)
+    }
+    requestAnimationFrame(tryScroll)
+
+    return () => { cancelled = true }
+  }, [route])
+}
+
 const goTo = (path) => { window.location.hash = path }
+
+// Navigation vers une section. Gère le cas où l'on clique sur le lien de la
+// section déjà active : le hash ne change pas, donc « hashchange » ne se
+// déclenche jamais et rien ne bougerait sans ce traitement manuel.
+function goToSection(section) {
+  const target = `#/#${section}`
+  if (window.location.hash === target) {
+    scrollToSection(section)
+  } else {
+    window.location.hash = target
+  }
+}
 
 /* ============================================================
    HOOKS UTILITAIRES
@@ -85,16 +172,13 @@ function useReveal() {
     if (!el) return
 
     // Si l'élément est déjà visible au montage, révéler immédiatement.
-    // Évite que les sections au-dessus de la ligne de pliure restent à opacity:0
-    // sur les chargements rapides ou les recharges après un scroll.
     const rect = el.getBoundingClientRect()
     if (rect.top < window.innerHeight && rect.bottom > 0) {
       el.classList.add('is-visible')
       return
     }
 
-    // Filet de sécurité : si quelque chose bloque l'observer (mobile capricieux),
-    // on force la visibilité après 1.2 s.
+    // Filet de sécurité si l'observer est bloqué.
     const fallback = setTimeout(() => {
       el.classList.add('is-visible')
     }, 1200)
@@ -108,13 +192,7 @@ function useReveal() {
             obs.unobserve(e.target)
           }
         }),
-      {
-        // threshold à 0 + rootMargin négatif en bas = se déclenche dès que
-        // ~50px de l'élément entrent par le bas du viewport. Fiable sur mobile
-        // même pour des sections très hautes (ex: 18 projets en colonne unique).
-        threshold: 0,
-        rootMargin: '0px 0px -50px 0px',
-      },
+      { threshold: 0, rootMargin: '0px 0px -50px 0px' },
     )
     obs.observe(el)
 
@@ -124,6 +202,16 @@ function useReveal() {
     }
   }, [])
   return ref
+}
+
+// Verrouille le défilement de la page quand le menu mobile est ouvert.
+function useBodyScrollLock(locked) {
+  useEffect(() => {
+    if (!locked) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previous }
+  }, [locked])
 }
 
 /* ============================================================
@@ -139,6 +227,16 @@ const SunIcon = () => (
 const MoonIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+  </svg>
+)
+const MenuIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M3 6h18M3 12h18M3 18h18"/>
+  </svg>
+)
+const CloseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M18 6L6 18M6 6l12 12"/>
   </svg>
 )
 
@@ -169,60 +267,130 @@ function LangToggle() {
   )
 }
 
-function Nav({ onHome }) {
+function Nav() {
   const { t } = useApp()
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useBodyScrollLock(menuOpen)
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
-    window.addEventListener('scroll', onScroll)
+    window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // Fermer le menu avec la touche Échap.
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e) => { if (e.key === 'Escape') setMenuOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
+
   const links = [
-    { href: '#/#about', label: t.nav.about },
-    { href: '#/#experience', label: t.nav.experience },
-    { href: '#/#projects', label: t.nav.projects },
-    { href: '#/#skills', label: t.nav.skills },
-    { href: '#/#contact', label: t.nav.contact },
+    { id: 'about', label: t.nav.about },
+    { id: 'experience', label: t.nav.experience },
+    { id: 'projects', label: t.nav.projects },
+    { id: 'skills', label: t.nav.skills },
+    { id: 'certifications', label: t.nav.certifications },
+    { id: 'contact', label: t.nav.contact },
   ]
 
+  const handleLink = (e, id) => {
+    e.preventDefault()
+    setMenuOpen(false)
+    goToSection(id)
+  }
+
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled ? 'bg-cream/85 backdrop-blur-md border-b border-ink/10' : 'bg-transparent'
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between gap-4">
-        <a
-          href="#/"
-          onClick={(e) => { e.preventDefault(); goTo('/'); onHome?.() }}
-          className="font-display text-2xl font-bold tracking-tightest text-ink shrink-0"
-        >
-          J<span className="text-accent">.</span>T
-        </a>
-
-        <ul className="hidden lg:flex items-center gap-6">
-          {links.map((l) => (
-            <li key={l.href}>
-              <a href={l.href} className="font-mono text-xs uppercase tracking-widest link-underline text-ink">
-                {l.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex items-center gap-3">
-          <LangToggle />
-          <ThemeToggle />
+    <>
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          scrolled || menuOpen ? 'bg-cream/85 backdrop-blur-md border-b border-ink/10' : 'bg-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center justify-between gap-4">
           <a
-            href="#/#contact"
-            className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-ink text-cream font-mono text-xs uppercase tracking-widest hover:bg-accent transition-colors"
+            href="#/"
+            onClick={(e) => { e.preventDefault(); setMenuOpen(false); goTo('/') }}
+            className="font-display text-2xl font-bold tracking-tightest text-ink shrink-0"
           >
-            {t.nav.cta} →
+            J<span className="text-accent">.</span>T
+          </a>
+
+          <ul className="hidden lg:flex items-center gap-6">
+            {links.map((l) => (
+              <li key={l.id}>
+                <a
+                  href={`#/#${l.id}`}
+                  onClick={(e) => handleLink(e, l.id)}
+                  className="font-mono text-xs uppercase tracking-widest link-underline text-ink"
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex items-center gap-3">
+            <LangToggle />
+            <ThemeToggle />
+            <a
+              href="#/#contact"
+              onClick={(e) => handleLink(e, 'contact')}
+              className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-ink text-cream font-mono text-xs uppercase tracking-widest hover:bg-accent transition-colors"
+            >
+              {t.nav.cta} →
+            </a>
+
+            {/* Bouton menu — visible seulement sous le point de rupture lg */}
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-expanded={menuOpen}
+              className="lg:hidden p-2 rounded-full border border-ink/20 text-ink hover:bg-ink hover:text-cream transition-all"
+            >
+              {menuOpen ? <CloseIcon /> : <MenuIcon />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Panneau de navigation mobile */}
+      <div
+        className={`lg:hidden fixed inset-0 z-40 bg-cream transition-opacity duration-300 ${
+          menuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="h-full flex flex-col justify-center px-8 pt-20 pb-12">
+          <ul className="space-y-2">
+            {links.map((l, i) => (
+              <li key={l.id}>
+                <a
+                  href={`#/#${l.id}`}
+                  onClick={(e) => handleLink(e, l.id)}
+                  className="flex items-baseline gap-4 py-3 border-b border-ink/10 group"
+                >
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-muted w-6">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className="font-display text-4xl font-light text-ink group-hover:text-accent transition-colors">
+                    {l.label}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <a
+            href={`mailto:${PROFILE.email}`}
+            className="mt-10 font-mono text-xs uppercase tracking-widest text-muted break-all"
+          >
+            {PROFILE.email}
           </a>
         </div>
       </div>
-    </nav>
+    </>
   )
 }
 
@@ -239,7 +407,7 @@ function Footer() {
 }
 
 /* ============================================================
-   COMPOSANT — Cover de projet (visuel à la place d'image)
+   COMPOSANT — Cover de projet
    ============================================================ */
 
 function ProjectCover({ project, large = false }) {
@@ -262,7 +430,7 @@ function ProjectCover({ project, large = false }) {
 }
 
 /* ============================================================
-   PAGE HOME — toutes les sections
+   PAGE HOME — sections
    ============================================================ */
 
 function Hero() {
@@ -331,7 +499,7 @@ function About() {
   const { t } = useApp()
   const ref = useReveal()
   return (
-    <section id="about" ref={ref} className="reveal py-32 px-6 md:px-12 relative">
+    <section id="about" ref={ref} className="reveal py-32 px-6 md:px-12 relative scroll-mt-24">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
           <div className="md:col-span-4">
@@ -361,7 +529,7 @@ function Experience() {
   const { t, lang } = useApp()
   const ref = useReveal()
   return (
-    <section id="experience" ref={ref} className="reveal py-32 px-6 md:px-12 bg-cream-2/40 relative">
+    <section id="experience" ref={ref} className="reveal py-32 px-6 md:px-12 bg-cream-2/40 relative scroll-mt-24">
       <div className="max-w-7xl mx-auto">
         <div className="mb-20">
           <div className="section-label mb-6">{t.experience.number}</div>
@@ -404,14 +572,18 @@ function Projects() {
   const { t, lang } = useApp()
   const ref = useReveal()
   const [filter, setFilter] = useState('all')
-  const categories = useMemo(
-    () => ['all', ...Array.from(new Set(PROJECTS.map((p) => p.category)))],
-    []
-  )
+
+  // Ordre de filtres stable et lisible plutôt qu'un ordre dicté par les données.
+  const categories = useMemo(() => {
+    const order = ['web', 'mobile', 'devops', 'infra', 'desktop', 'game']
+    const present = new Set(PROJECTS.map((p) => p.category))
+    return ['all', ...order.filter((c) => present.has(c))]
+  }, [])
+
   const filtered = filter === 'all' ? PROJECTS : PROJECTS.filter((p) => p.category === filter)
 
   return (
-    <section id="projects" ref={ref} className="reveal py-32 px-6 md:px-12 relative">
+    <section id="projects" ref={ref} className="reveal py-32 px-6 md:px-12 relative scroll-mt-24">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
@@ -429,6 +601,7 @@ function Projects() {
             <button
               key={cat}
               onClick={() => setFilter(cat)}
+              aria-pressed={filter === cat}
               className={`px-4 py-2 font-mono text-xs uppercase tracking-widest border transition-all ${
                 filter === cat
                   ? 'bg-ink text-cream border-ink'
@@ -450,12 +623,12 @@ function Projects() {
             >
               <ProjectCover project={p} />
               <div className="p-6">
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between mb-3 gap-3">
                   <div className="font-mono text-[10px] uppercase tracking-widest text-muted">
                     {String(idx + 1).padStart(2, '0')} / {t.categories[p.category]}
                   </div>
                   {p.featured && (
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-accent">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-accent shrink-0">
                       {t.projects.featured}
                     </span>
                   )}
@@ -498,7 +671,7 @@ function Skills() {
   const { t } = useApp()
   const ref = useReveal()
   return (
-    <section id="skills" ref={ref} className="reveal py-32 px-6 md:px-12 bg-ink text-cream relative overflow-hidden">
+    <section id="skills" ref={ref} className="reveal py-32 px-6 md:px-12 bg-ink text-cream relative overflow-hidden scroll-mt-24">
       <div
         aria-hidden
         className="absolute top-0 -right-20 font-display text-[20rem] font-light leading-none text-cream/[0.03] pointer-events-none select-none"
@@ -534,13 +707,38 @@ function Skills() {
   )
 }
 
+/* ============================================================
+   SECTION — Formation & certifications
+
+   ⚠️ CORRECTIF n°3 : cette section n'avait aucun id, elle était donc
+   impossible à cibler depuis la navigation. Elle a désormais id="certifications"
+   et les certifications sont regroupées par organisme émetteur.
+   ============================================================ */
+
 function Certifications() {
   const { t, lang } = useApp()
   const ref = useReveal()
+
+  // Regroupe les certifications par émetteur, dans l'ordre d'apparition.
+  const grouped = useMemo(() => {
+    const map = new Map()
+    CERTIFICATIONS.forEach((cert) => {
+      if (!map.has(cert.issuer)) map.set(cert.issuer, [])
+      map.get(cert.issuer).push(cert)
+    })
+    return Array.from(map, ([issuer, items]) => ({ issuer, items }))
+  }, [])
+
+  const total = CERTIFICATIONS.length
+
   return (
-    <section ref={ref} className="reveal py-32 px-6 md:px-12 relative">
+    <section
+      id="certifications"
+      ref={ref}
+      className="reveal py-32 px-6 md:px-12 relative bg-cream-2/40 scroll-mt-24"
+    >
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-20">
           <div className="md:col-span-4">
             <div className="section-label mb-6">{t.certifications.number}</div>
             <h2 className="font-display text-5xl md:text-6xl font-light leading-none tracking-tightest text-ink">
@@ -548,41 +746,78 @@ function Certifications() {
               <span className="italic">{t.certifications.titleB}</span>
             </h2>
           </div>
-          <div className="md:col-span-7 md:col-start-6">
-            <div className="mb-12">
-              <h3 className="font-mono text-[10px] uppercase tracking-widest text-accent mb-6">
-                {t.certifications.education}
-              </h3>
-              <div className="space-y-6">
-                {EDUCATION.map((edu, idx) => (
-                  <div key={idx} className="flex justify-between gap-6 pb-4 border-b border-ink/10">
-                    <div>
-                      <div className="font-display text-xl text-ink leading-tight">{edu.degree[lang]}</div>
-                      <div className="font-mono text-sm text-muted mt-1">{edu.school}</div>
-                    </div>
-                    <div className="font-mono text-xs text-accent uppercase whitespace-nowrap mt-1">
-                      {edu.period}
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <div className="md:col-span-7 md:col-start-6 self-end">
+            <div className="flex items-baseline gap-4">
+              <span className="font-display text-7xl md:text-8xl font-light text-accent leading-none">
+                {total}
+              </span>
+              <span className="font-mono text-xs uppercase tracking-widest text-muted max-w-[16rem] leading-relaxed">
+                {t.certifications.countLabel}
+              </span>
             </div>
+          </div>
+        </div>
 
-            <div>
-              <h3 className="font-mono text-[10px] uppercase tracking-widest text-accent mb-6">
-                {t.certifications.certs}
-              </h3>
-              <ul className="space-y-3">
-                {CERTIFICATIONS.map((cert, idx) => (
-                  <li key={idx} className="flex gap-4 text-ink-2 text-sm">
-                    <span className="font-mono text-xs text-muted flex-shrink-0 mt-0.5">
-                      {String(idx + 1).padStart(2, '0')}
-                    </span>
-                    <span>{cert}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* FORMATION */}
+        <div className="mb-20">
+          <h3 className="font-mono text-[10px] uppercase tracking-widest text-accent mb-8">
+            {t.certifications.education}
+          </h3>
+          <div className="space-y-6">
+            {EDUCATION.map((edu, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-6 pb-5 border-b border-ink/10"
+              >
+                <div>
+                  <div className="font-display text-xl md:text-2xl text-ink leading-tight">{edu.degree[lang]}</div>
+                  <div className="font-mono text-sm text-muted mt-1">{edu.school}</div>
+                </div>
+                <div className="font-mono text-xs text-accent uppercase whitespace-nowrap sm:mt-2">
+                  {edu.period}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CERTIFICATIONS, GROUPÉES PAR ÉMETTEUR */}
+        <div>
+          <h3 className="font-mono text-[10px] uppercase tracking-widest text-accent mb-8">
+            {t.certifications.certs}
+          </h3>
+
+          <div className="space-y-12">
+            {grouped.map((group) => (
+              <div key={group.issuer} className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div className="md:col-span-4">
+                  <div className="font-display text-xl text-ink leading-tight">{group.issuer}</div>
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-muted mt-1">
+                    {group.items.length} {group.items.length > 1 ? t.certifications.plural : t.certifications.singular}
+                  </div>
+                </div>
+                <ul className="md:col-span-8 space-y-3">
+                  {group.items.map((cert, i) => (
+                    <li
+                      key={i}
+                      className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4 pb-3 border-b border-ink/10 last:border-0"
+                    >
+                      <span className="flex-1 text-ink-2 text-sm leading-relaxed">
+                        {cert.name}
+                        {cert.code && (
+                          <span className="font-mono text-xs text-muted ml-2">{cert.code}</span>
+                        )}
+                      </span>
+                      {cert.status && (
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-accent whitespace-nowrap">
+                          {t.certifications.status[cert.status]}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -594,7 +829,7 @@ function Contact() {
   const { t } = useApp()
   const ref = useReveal()
   return (
-    <section id="contact" ref={ref} className="reveal py-32 px-6 md:px-12 bg-accent text-on-accent relative overflow-hidden">
+    <section id="contact" ref={ref} className="reveal py-32 px-6 md:px-12 bg-accent text-on-accent relative overflow-hidden scroll-mt-24">
       <div
         aria-hidden
         className="absolute -bottom-20 -left-10 font-display italic text-[18rem] font-light leading-none text-on-accent/10 pointer-events-none select-none"
@@ -650,17 +885,27 @@ function Contact() {
 function ProjectDetail({ projectId }) {
   const { t, lang } = useApp()
   const project = PROJECTS.find((p) => p.id === projectId)
+
   if (!project) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6">
+      <div className="min-h-screen flex flex-col">
         <Nav />
-        <h1 className="font-display text-4xl text-ink mb-4">404</h1>
-        <a href="#/" onClick={(e) => { e.preventDefault(); goTo('/') }} className="font-mono text-sm uppercase link-underline">
-          {t.projectDetail.back}
-        </a>
+        <div className="flex-1 flex flex-col items-center justify-center px-6">
+          <h1 className="font-display text-6xl text-ink mb-4">404</h1>
+          <p className="text-ink-2 mb-8">{t.projectDetail.notFound}</p>
+          <a
+            href="#/"
+            onClick={(e) => { e.preventDefault(); goTo('/') }}
+            className="font-mono text-sm uppercase tracking-widest link-underline text-ink"
+          >
+            {t.projectDetail.back}
+          </a>
+        </div>
+        <Footer />
       </div>
     )
   }
+
   const others = PROJECTS.filter((p) => p.id !== project.id).slice(0, 3)
 
   return (
@@ -710,6 +955,17 @@ function ProjectDetail({ projectId }) {
                 <dd className="text-ink">{t.categories[project.category]}</dd>
               </div>
             </dl>
+
+            {project.link && (
+              <a
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-8 inline-flex items-center gap-2 px-5 py-3 bg-ink text-cream font-mono text-xs uppercase tracking-widest hover:bg-accent transition-colors"
+              >
+                {t.projectDetail.viewLive} ↗
+              </a>
+            )}
           </div>
         </div>
       </section>
@@ -718,7 +974,7 @@ function ProjectDetail({ projectId }) {
       <section className="px-6 md:px-12 py-16 bg-cream-2/40">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12">
           <div className="md:col-span-4">
-            <div className="section-label">{t.projectDetail.highlights}</div>
+            <div className="section-label">{t.projectDetail.overview}</div>
           </div>
           <div className="md:col-span-7 md:col-start-6 space-y-6 text-ink-2 text-lg leading-relaxed">
             {project.longDescription[lang].split('\n\n').map((para, i) => (
@@ -759,7 +1015,7 @@ function ProjectDetail({ projectId }) {
               {t.projectDetail.stack}
             </div>
             <h2 className="font-display text-4xl md:text-5xl font-light leading-none tracking-tightest">
-              <span className="italic">{project.stack.length}</span> techno{project.stack.length > 1 ? 's' : ''}.
+              <span className="italic">{project.stack.length}</span> {t.projectDetail.techWord(project.stack.length)}.
             </h2>
           </div>
           <div className="md:col-span-7 md:col-start-6 flex flex-wrap gap-3 self-center">
@@ -808,7 +1064,7 @@ function ProjectDetail({ projectId }) {
 }
 
 /* ============================================================
-   PAGE — Accueil complète
+   PAGE — Accueil
    ============================================================ */
 
 function HomePage() {
@@ -833,8 +1089,11 @@ function HomePage() {
 
 function Router() {
   const route = useHashRoute()
-  // Match #/project/:id
-  const projectMatch = route.match(/^#\/project\/(.+?)(?:#|$)/)
+  useScrollBehavior(route)
+
+  const { path } = parseRoute(route)
+  const projectMatch = path.match(/^\/project\/(.+)$/)
+
   if (projectMatch) {
     return <ProjectDetail projectId={projectMatch[1]} />
   }
