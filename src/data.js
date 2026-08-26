@@ -947,20 +947,20 @@ export const EDUCATION = [
     school: "Collège O'Sullivan de Québec",
   },
   {
-    period: '2017 — 2020',
+    period: '2017-2020',
     degree: {
       fr: "Baccalauréat en Technologie de l'information",
       en: "Bachelor's in Information Technology",
     },
-    school: 'Institut supérieur Istag, Cameroun',
+    school: 'Equivalence diplome MIFI',
   },
   {
-    period: '2017 — 2019',
+    period: '2017-2019',
     degree: {
       fr: 'DEC en Télécommunications',
       en: 'DEC in Telecommunications',
     },
-    school: 'Institut supérieur Istag, Cameroun',
+    school: 'Equivalence diplome MIFI',
   },
 ]
 
