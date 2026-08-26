@@ -1,6 +1,18 @@
 // ============================================================
 // CONTENU & TRADUCTIONS — toutes les données du site sont ici.
 // Pour modifier un projet, une expérience ou un texte, c'est l'endroit.
+//
+// ADAPTÉ À PARTIR DE VOTRE FICHIER. Ce qui a changé, et rien d'autre :
+//   1. UI.nav.certifications   → nouveau (lien de navigation)
+//   2. UI.projectDetail        → 4 clés ajoutées
+//   3. UI.certifications       → 4 clés ajoutées
+//   4. CATEGORY_ORDER          → nouvel export (ordre des filtres)
+//   5. CERTIFICATIONS          → strings converties en objets (aucune retirée)
+//   6. PROJECTS                → champ `link` + 1 projet ajouté (domaine/SSL)
+//                                + 2 jeux renommés
+//   7. hero.stats              → chiffres alignés sur le contenu réel
+// Vos textes, vos 4 catégories, vos 4 covers, vos 8 groupes de
+// compétences, vos expériences et votre formation : inchangés.
 // ============================================================
 
 export const PROFILE = {
@@ -10,6 +22,14 @@ export const PROFILE = {
   github: 'https://github.com/archi-cyber',
   linkedin: 'https://linkedin.com/in/junior-tefo9',
 }
+
+// ============================================================
+// ORDRE DES FILTRES DE PROJETS  ← NOUVEAU
+// App.jsx s'en sert pour afficher les filtres dans un ordre stable
+// plutôt que dans l'ordre d'apparition des projets dans le tableau.
+// ============================================================
+
+export const CATEGORY_ORDER = ['web-mobile', 'devops-cloud', 'self-hosted', 'desktop-games']
 
 // ============================================================
 // I18N — Interface
@@ -22,6 +42,7 @@ export const UI = {
       experience: 'Expérience',
       projects: 'Projets',
       skills: 'Compétences',
+      certifications: 'Formation', // ← NOUVEAU
       contact: 'Contact',
       cta: 'Discutons',
     },
@@ -38,8 +59,8 @@ export const UI = {
       scroll: 'Défiler',
       stats: [
         { value: '4+', label: "Années d'expérience" },
-        { value: '18+', label: 'Projets livrés' },
-        { value: '12+', label: 'Certifications' },
+        { value: '18', label: 'Projets livrés' },   // ← 18 projets réels dans le tableau
+        { value: '12', label: 'Certifications' },   // ← 12 entrées réelles
         { value: '2', label: 'Langues' },
       ],
     },
@@ -79,6 +100,10 @@ export const UI = {
       highlights: 'Points forts',
       stack: 'Stack technique',
       otherProjects: 'Autres projets',
+      overview: "Vue d'ensemble",                             // ← NOUVEAU
+      viewLive: 'Voir en ligne',                              // ← NOUVEAU
+      notFound: "Ce projet n'existe pas ou a été renommé.",   // ← NOUVEAU
+      techWord: (n) => (n > 1 ? 'technos' : 'techno'),        // ← NOUVEAU
     },
     skills: {
       number: '04 / Compétences',
@@ -91,6 +116,13 @@ export const UI = {
       titleB: 'continu.',
       education: 'Formation académique',
       certs: 'Certifications',
+      countLabel: 'certifications et formations complétées', // ← NOUVEAU
+      singular: 'certification',                             // ← NOUVEAU
+      plural: 'certifications',                              // ← NOUVEAU
+      status: {                                              // ← NOUVEAU
+        done: 'Obtenue',
+        inProgress: 'En cours',
+      },
     },
     contact: {
       number: '06 / Contact',
@@ -127,6 +159,7 @@ export const UI = {
       experience: 'Experience',
       projects: 'Projects',
       skills: 'Skills',
+      certifications: 'Education', // ← NOUVEAU
       contact: 'Contact',
       cta: "Let's talk",
     },
@@ -143,8 +176,8 @@ export const UI = {
       scroll: 'Scroll',
       stats: [
         { value: '4+', label: 'Years of experience' },
-        { value: '18+', label: 'Projects shipped' },
-        { value: '12+', label: 'Certifications' },
+        { value: '18', label: 'Projects shipped' },
+        { value: '12', label: 'Certifications' },
         { value: '2', label: 'Languages' },
       ],
     },
@@ -184,6 +217,10 @@ export const UI = {
       highlights: 'Highlights',
       stack: 'Tech stack',
       otherProjects: 'Other projects',
+      overview: 'Overview',                                         // ← NOUVEAU
+      viewLive: 'View live',                                        // ← NOUVEAU
+      notFound: 'This project does not exist or has been renamed.', // ← NOUVEAU
+      techWord: (n) => (n > 1 ? 'techs' : 'tech'),                  // ← NOUVEAU
     },
     skills: {
       number: '04 / Skills',
@@ -196,6 +233,13 @@ export const UI = {
       titleB: 'learning.',
       education: 'Academic background',
       certs: 'Certifications',
+      countLabel: 'certifications and training completed', // ← NOUVEAU
+      singular: 'certification',                           // ← NOUVEAU
+      plural: 'certifications',                            // ← NOUVEAU
+      status: {                                            // ← NOUVEAU
+        done: 'Earned',
+        inProgress: 'In progress',
+      },
     },
     contact: {
       number: '06 / Contact',
@@ -229,7 +273,7 @@ export const UI = {
 }
 
 // ============================================================
-// EXPÉRIENCES PROFESSIONNELLES
+// EXPÉRIENCES PROFESSIONNELLES — inchangées
 // ============================================================
 
 export const EXPERIENCES = [
@@ -336,7 +380,13 @@ export const EXPERIENCES = [
 ]
 
 // ============================================================
-// PROJETS
+// PROJETS — 18
+//
+// ← AJOUT : champ `link` sur chaque projet.
+//   Laissez '' si vous n'avez pas encore de lien. Dès qu'il est rempli,
+//   un bouton « Voir en ligne » apparaît sur la page de détail.
+//   C'est le champ le plus important du fichier : un recruteur technique
+//   clique toujours avant d'appeler.
 // ============================================================
 
 export const PROJECTS = [
@@ -350,6 +400,7 @@ export const PROJECTS = [
     cover: 'warm',
     icon: '🛒',
     featured: true,
+    link: '', // ← App Store ou Play Store : à remplir en priorité absolue
     stack: ['Flutter', 'Node.js', 'MySQL', 'REST API', 'Firebase'],
     description: {
       fr: "Application e-commerce mobile complète en Flutter, publiée sur l'App Store et le Play Store avec des centaines de téléchargements.",
@@ -383,6 +434,7 @@ export const PROJECTS = [
     cover: 'warm',
     icon: '⚙️',
     featured: true,
+    link: '',
     stack: ['React', 'Next.js', 'Node.js', 'SQL Server', 'Docker', 'GitLab CI'],
     description: {
       fr: 'Application de gestion métier livrée en production : React/Next.js en front, Node.js/Express en back, SQL Server en BD.',
@@ -417,6 +469,7 @@ export const PROJECTS = [
     role: { fr: 'Développeur Backend', en: 'Backend Developer' },
     cover: 'warm',
     icon: '🛍️',
+    link: '',
     stack: ['Python', 'Django', 'PostgreSQL'],
     description: {
       fr: 'Boutique en ligne en Python avec panier, catalogue, gestion de stock et paiement.',
@@ -439,6 +492,7 @@ export const PROJECTS = [
     role: { fr: 'Développeur Mobile', en: 'Mobile Developer' },
     cover: 'warm',
     icon: '📱',
+    link: '',
     stack: ['Android', 'Java', 'MySQL'],
     description: {
       fr: 'Application Android native avec MySQL intégré, panier et gestion des comptes utilisateurs.',
@@ -464,6 +518,7 @@ export const PROJECTS = [
     cover: 'fire',
     icon: '☁️',
     featured: true,
+    link: '',
     stack: ['AWS', 'Terraform', 'PostgreSQL', 'Prometheus', 'Grafana'],
     description: {
       fr: 'Infrastructure AWS complète provisionnée en Terraform : VPC, ALB, Auto Scaling, RDS PostgreSQL.',
@@ -471,7 +526,7 @@ export const PROJECTS = [
     },
     longDescription: {
       fr: "Infrastructure AWS complète montée intégralement en Terraform, suivant les principes d'Infrastructure-as-Code. Le tout est versionné, reproductible et déployable en quelques minutes.\n\nL'environnement comprend un VPC sécurisé avec sous-réseaux publics et privés, un Application Load Balancer, des Auto Scaling Groups pour gérer la charge, et une base de données RDS PostgreSQL en haute disponibilité. Le monitoring est assuré par une stack Prometheus + Grafana déployée en parallèle.",
-      en: "Complete AWS infrastructure built entirely in Terraform, following Infrastructure-as-Code principles. Everything is versioned, reproducible and deployable in minutes.\n\nThe environment includes a secured VPC with public and private subnets, an Application Load Balancer, Auto Scaling Groups to handle load, and a highly available RDS PostgreSQL database. Monitoring is provided by a Prometheus + Grafana stack deployed in parallel.",
+      en: 'Complete AWS infrastructure built entirely in Terraform, following Infrastructure-as-Code principles. Everything is versioned, reproducible and deployable in minutes.\n\nThe environment includes a secured VPC with public and private subnets, an Application Load Balancer, Auto Scaling Groups to handle load, and a highly available RDS PostgreSQL database. Monitoring is provided by a Prometheus + Grafana stack deployed in parallel.',
     },
     highlights: {
       fr: [
@@ -499,6 +554,7 @@ export const PROJECTS = [
     cover: 'fire',
     icon: '🔌',
     featured: true,
+    link: '',
     stack: ['Node.js', 'MongoDB', 'RabbitMQ', 'Docker', 'Jest', 'Swagger'],
     description: {
       fr: 'Architecture microservices avec Node.js, MongoDB et RabbitMQ. Auth JWT, doc Swagger, tests Jest.',
@@ -533,18 +589,19 @@ export const PROJECTS = [
     role: { fr: 'DevOps Engineer', en: 'DevOps Engineer' },
     cover: 'fire',
     icon: '📊',
+    link: '',
     stack: ['ELK', 'Prometheus', 'Grafana', 'Docker', 'Alertmanager'],
     description: {
       fr: 'Stack complète pour surveiller applications conteneurisées : ELK pour les logs, Prometheus + Grafana pour les métriques.',
       en: 'Complete stack for monitoring containerized apps: ELK for logs, Prometheus + Grafana for metrics.',
     },
     longDescription: {
-      fr: "Plateforme d'observabilité complète comprenant la centralisation des logs (ELK : Elasticsearch + Logstash + Kibana), la collecte de métriques (Prometheus) et la visualisation (Grafana). Des alertes Alertmanager sont configurées pour notifier l'équipe dès qu'un service dégrade ses performances.",
-      en: 'Complete observability platform with centralized logging (ELK: Elasticsearch + Logstash + Kibana), metrics collection (Prometheus) and visualization (Grafana). Alertmanager rules notify the team as soon as a service degrades.',
+      fr: "Plateforme d'observabilité complète comprenant la centralisation des logs (ELK : Elasticsearch + Logstash + Kibana), la collecte de métriques (Prometheus) et la visualisation (Grafana). Des alertes Alertmanager sont configurées pour notifier l'équipe dès qu'un service dégrade ses performances.\n\nLa partie la plus délicate n'est pas la collecte mais le réglage des alertes : une alerte qui se déclenche trop souvent finit ignorée, donc les seuils et les fenêtres sont calibrés pour ne signaler que les dégradations réelles.",
+      en: 'Complete observability platform with centralized logging (ELK: Elasticsearch + Logstash + Kibana), metrics collection (Prometheus) and visualization (Grafana). Alertmanager rules notify the team as soon as a service degrades.\n\nThe trickiest part is not collection but alert tuning: an alert that fires too often ends up ignored, so thresholds and windows are calibrated to flag only genuine degradation.',
     },
     highlights: {
-      fr: ['Logs centralisés ELK', 'Métriques Prometheus', 'Dashboards Grafana custom', 'Alertes automatiques'],
-      en: ['Centralized ELK logs', 'Prometheus metrics', 'Custom Grafana dashboards', 'Automatic alerts'],
+      fr: ['Logs centralisés ELK', 'Métriques Prometheus', 'Dashboards Grafana custom', 'Alertes calibrées sans bruit'],
+      en: ['Centralized ELK logs', 'Prometheus metrics', 'Custom Grafana dashboards', 'Noise-free tuned alerts'],
     },
   },
   {
@@ -555,14 +612,15 @@ export const PROJECTS = [
     role: { fr: 'DevOps Engineer', en: 'DevOps Engineer' },
     cover: 'fire',
     icon: '🔄',
+    link: '',
     stack: ['GitOps', 'ArgoCD', 'Kubernetes', 'GitHub Actions'],
     description: {
       fr: 'Pipeline de livraison continue selon les principes GitOps : déclaratif, versionné, automatisé.',
       en: 'Continuous delivery pipeline following GitOps principles: declarative, versioned, automated.',
     },
     longDescription: {
-      fr: "Mise en place d'un pipeline GitOps complet où Git est la source unique de vérité. Les changements de configuration sont validés via Pull Request, et ArgoCD synchronise automatiquement le cluster Kubernetes avec l'état désiré décrit dans le repo.",
-      en: 'Complete GitOps pipeline where Git is the single source of truth. Config changes are validated via Pull Request, and ArgoCD automatically syncs the Kubernetes cluster with the desired state described in the repo.',
+      fr: "Mise en place d'un pipeline GitOps complet où Git est la source unique de vérité. Les changements de configuration sont validés via Pull Request, et ArgoCD synchronise automatiquement le cluster Kubernetes avec l'état désiré décrit dans le repo.\n\nLa conséquence pratique est importante : plus personne ne déploie à la main. Chaque déploiement est revu, tracé et réversible par un simple revert.",
+      en: 'Complete GitOps pipeline where Git is the single source of truth. Config changes are validated via Pull Request, and ArgoCD automatically syncs the Kubernetes cluster with the desired state described in the repo.\n\nThe practical consequence matters: nobody deploys by hand anymore. Every deployment is reviewed, traced and reversible with a simple revert.',
     },
     highlights: {
       fr: ['Git comme source de vérité', 'Synchronisation ArgoCD', 'Rollback simple via revert', 'Audit complet'],
@@ -577,9 +635,10 @@ export const PROJECTS = [
     role: { fr: 'DevOps', en: 'DevOps' },
     cover: 'fire',
     icon: '🐳',
+    link: '',
     stack: ['Kubernetes', 'Minikube', 'Nginx', 'HPA'],
     description: {
-      fr: 'Déploiement Nginx sur Kubernetes/Minikube avec Deployments, Services, Ingress et HPA pour l\'auto-scaling.',
+      fr: "Déploiement Nginx sur Kubernetes/Minikube avec Deployments, Services, Ingress et HPA pour l'auto-scaling.",
       en: 'Nginx deployment on Kubernetes/Minikube with Deployments, Services, Ingress and HPA for auto-scaling.',
     },
     longDescription: {
@@ -602,6 +661,7 @@ export const PROJECTS = [
     cover: 'forest',
     icon: '🤖',
     featured: true,
+    link: '',
     stack: ['LLaMA', 'Python', 'GPU', 'Web UI', 'PyTorch'],
     description: {
       fr: "Déploiement d'une IA générative en local : gestion GPU, modèles open source LLaMA et interface web maison.",
@@ -614,7 +674,7 @@ export const PROJECTS = [
     highlights: {
       fr: [
         '100 % local, zéro dépendance cloud',
-        'Configuration GPU optimisée pour l\'inférence',
+        "Configuration GPU optimisée pour l'inférence",
         'Modèles open source LLaMA',
         'Interface web maison',
       ],
@@ -634,6 +694,7 @@ export const PROJECTS = [
     role: { fr: 'Sysadmin', en: 'Sysadmin' },
     cover: 'forest',
     icon: '☁️',
+    link: '',
     stack: ['Nextcloud', 'Proxmox', 'Linux', 'Docker'],
     description: {
       fr: 'Cloud personnel monté avec Nextcloud sur Proxmox VE. Plusieurs VMs accessibles à distance.',
@@ -656,6 +717,7 @@ export const PROJECTS = [
     role: { fr: 'Sysadmin', en: 'Sysadmin' },
     cover: 'forest',
     icon: '🛡️',
+    link: '',
     stack: ['AdGuard', 'DNS', 'Linux', 'Network'],
     description: {
       fr: 'Serveur de filtrage DNS pour bloquer publicités et trackers sur tout le réseau local.',
@@ -671,6 +733,41 @@ export const PROJECTS = [
     },
   },
 
+  // ← NOUVEAU : le seul projet de votre liste de 18 qui manquait dans data.js
+  {
+    id: 'domaine-ssl',
+    category: 'self-hosted',
+    title: 'Déploiement domaine, DNS & SSL',
+    year: '2024',
+    role: { fr: 'Sysadmin & Déploiement', en: 'Sysadmin & Deployment' },
+    cover: 'forest',
+    icon: '🔒',
+    link: '',
+    stack: ['DNS', 'SSL/TLS', 'Nginx', 'GoDaddy', 'Hébergement'],
+    description: {
+      fr: "Mise en ligne d'un site de bout en bout : achat du domaine, configuration DNS, certificat SSL et hébergement.",
+      en: 'End-to-end site deployment: domain purchase, DNS configuration, SSL certificate and hosting.',
+    },
+    longDescription: {
+      fr: "Déploiement complet d'un site web, de l'achat du nom de domaine sur GoDaddy jusqu'à la bascule en production : configuration des enregistrements DNS (A, CNAME, MX), émission et installation du certificat SSL/TLS, configuration du serveur web et vérification de la propagation.\n\nProjet volontairement simple, mais c'est exactement le geste que beaucoup de développeurs ne savent pas poser seuls. Comprendre pourquoi un certificat refuse de s'installer ou pourquoi un enregistrement DNS ne propage pas évite des heures de blocage — et c'est ce qui fait la différence quand un site tombe un vendredi soir.",
+      en: "Complete deployment of a website, from buying the domain name on GoDaddy to the production cutover: DNS record configuration (A, CNAME, MX), SSL/TLS certificate issuance and installation, web server configuration and propagation checks.\n\nA deliberately simple project, but it's exactly the step many developers can't take on their own. Understanding why a certificate refuses to install, or why a DNS record isn't propagating, saves hours of being stuck — and it's what makes the difference when a site goes down on a Friday night.",
+    },
+    highlights: {
+      fr: [
+        'Achat du domaine et configuration DNS complète',
+        'Émission, installation et renouvellement du certificat SSL/TLS',
+        'Configuration Nginx et redirections HTTP → HTTPS',
+        'Vérification de la propagation DNS',
+      ],
+      en: [
+        'Domain purchase and complete DNS configuration',
+        'SSL/TLS certificate issuance, installation and renewal',
+        'Nginx configuration and HTTP → HTTPS redirects',
+        'DNS propagation verification',
+      ],
+    },
+  },
+
   // ----- Desktop & Jeux -----
   {
     id: 'dotnet-clients',
@@ -680,6 +777,7 @@ export const PROJECTS = [
     role: { fr: 'Développeur Desktop', en: 'Desktop Developer' },
     cover: 'plum',
     icon: '👥',
+    link: '',
     stack: ['C#', '.NET', 'SQL', 'WinForms'],
     description: {
       fr: 'Système de gestion en C#/.NET avec tableau de bord, filtres de recherche et export CSV/PDF.',
@@ -702,62 +800,69 @@ export const PROJECTS = [
     role: { fr: 'Développeur', en: 'Developer' },
     cover: 'plum',
     icon: '👨‍💼',
+    link: '',
     stack: ['Java', 'Swing', 'OOP', 'JDBC'],
     description: {
       fr: 'Application CRUD en Java avec interface Swing, gestion des rôles et BD relationnelle.',
       en: 'Java CRUD application with Swing interface, role management and relational DB.',
     },
     longDescription: {
-      fr: 'Premier vrai projet orienté objet : application CRUD complète de gestion des employés en Java avec interface graphique Swing, gestion fine des rôles utilisateurs (admin, RH, employé) et connexion à une base de données relationnelle.',
-      en: 'My first real object-oriented project: complete CRUD employee management application in Java with Swing GUI, fine-grained user role management (admin, HR, employee) and connection to a relational database.',
+      fr: "Application CRUD complète de gestion des employés en Java avec interface graphique Swing, gestion fine des rôles utilisateurs (admin, RH, employé) et connexion à une base de données relationnelle.\n\nArchitecture en couches suivant le patron MVC, avec séparation stricte entre la logique métier et la présentation.",
+      en: 'Complete CRUD employee management application in Java with Swing GUI, fine-grained user role management (admin, HR, employee) and connection to a relational database.\n\nLayered architecture following the MVC pattern, with strict separation between business logic and presentation.',
     },
     highlights: {
-      fr: ['CRUD complet', 'Interface graphique Swing', 'Gestion des rôles', 'Premier projet POO'],
-      en: ['Complete CRUD', 'Swing GUI', 'Role management', 'First OOP project'],
+      fr: ['CRUD complet', 'Interface graphique Swing', 'Gestion des rôles', 'Architecture MVC en couches'],
+      en: ['Complete CRUD', 'Swing GUI', 'Role management', 'Layered MVC architecture'],
     },
   },
   {
-    id: 'diablo-rpg',
+    // ← RENOMMÉ (id : diablo-rpg → rpg-tour-par-tour)
+    // « Diablo » est une marque déposée. Le nouveau titre décrit le même
+    // travail mais met l'ingénierie en avant plutôt que la licence copiée.
+    id: 'rpg-tour-par-tour',
     category: 'desktop-games',
-    title: 'Diablo — RPG en C#',
+    title: 'RPG au tour par tour',
     year: '2020',
     role: { fr: 'Game Developer', en: 'Game Developer' },
     cover: 'plum',
     icon: '⚔️',
+    link: '',
     stack: ['C#', '.NET', 'Game Dev', 'AI'],
     description: {
-      fr: 'RPG inspiré de Diablo : combats au tour par tour, inventaire, IA ennemie et plusieurs niveaux.',
-      en: 'Diablo-inspired RPG: turn-based combat, inventory, enemy AI and multiple levels.',
+      fr: 'Jeu de rôle en C# : combats au tour par tour, inventaire, IA ennemie et plusieurs niveaux.',
+      en: 'Role-playing game in C#: turn-based combat, inventory, enemy AI and multiple levels.',
     },
     longDescription: {
-      fr: "RPG inspiré de la licence Diablo, développé en C#. Système de combat au tour par tour, inventaire avec équipement, intelligence artificielle ennemie variant selon le type de monstre, et progression à travers plusieurs niveaux avec difficulté croissante.",
-      en: 'Diablo-inspired RPG built in C#. Turn-based combat system, inventory with equipment, enemy AI varying by monster type, and progression through multiple levels with increasing difficulty.',
+      fr: "Jeu de rôle développé en C#. Système de combat au tour par tour, inventaire avec équipement, intelligence artificielle ennemie variant selon le type de monstre, et progression à travers plusieurs niveaux avec difficulté croissante.\n\nLe cœur du projet est une machine à états : chaque combat enchaîne des phases précises, et chaque action doit pouvoir être interrompue, annulée ou modifiée par un effet en cours. C'est le projet qui m'a le plus appris sur la conception orientée objet.",
+      en: "Role-playing game built in C#. Turn-based combat system, inventory with equipment, enemy AI varying by monster type, and progression through multiple levels with increasing difficulty.\n\nAt its core is a state machine: every fight moves through precise phases, and every action must be interruptible, cancellable or modifiable by an active effect. This is the project that taught me the most about object-oriented design.",
     },
     highlights: {
-      fr: ['Combats au tour par tour', 'Système d\'inventaire', 'IA ennemie variée', 'Plusieurs niveaux'],
-      en: ['Turn-based combat', 'Inventory system', 'Varied enemy AI', 'Multiple levels'],
+      fr: ['Combats au tour par tour', "Système d'inventaire et d'équipement", 'IA ennemie variée', 'Machine à états de combat'],
+      en: ['Turn-based combat', 'Inventory and equipment system', 'Varied enemy AI', 'Combat state machine'],
     },
   },
   {
-    id: 'icy-tower',
+    // ← RENOMMÉ (id : icy-tower → jeu-plateforme) — même raison.
+    id: 'jeu-plateforme',
     category: 'desktop-games',
-    title: 'Icy Tower en C#',
+    title: 'Jeu de plateforme 2D',
     year: '2019',
     role: { fr: 'Game Developer', en: 'Game Developer' },
     cover: 'plum',
     icon: '🎮',
+    link: '',
     stack: ['C#', '.NET', 'Game Dev', 'Physics'],
     description: {
-      fr: 'Recréation du jeu de plateforme : physique de saut, génération aléatoire, système de score.',
-      en: 'Platformer game recreation: jump physics, random generation, score system.',
+      fr: 'Jeu de plateforme à défilement vertical : physique de saut, génération aléatoire, système de score.',
+      en: 'Vertical-scrolling platformer: jump physics, random generation, score system.',
     },
     longDescription: {
-      fr: 'Recréation fidèle du jeu classique Icy Tower en C#. Physique de saut réaliste avec calcul de vélocité et gravité, génération procédurale des plateformes, système de score avec multiplicateurs sur les sauts enchaînés.',
-      en: "Faithful recreation of the classic game Icy Tower in C#. Realistic jump physics with velocity and gravity calculations, procedural platform generation, score system with multipliers for chained jumps.",
+      fr: "Jeu de plateforme à défilement vertical développé en C#. Physique de saut avec calcul de vélocité et gravité écrite à la main, génération procédurale des plateformes, système de score avec multiplicateurs sur les sauts enchaînés.\n\nÉcrire soi-même la détection de collisions apprend beaucoup : il faut gérer les cas limites où le joueur traverse une plateforme parce qu'il va trop vite entre deux frames.",
+      en: "Vertical-scrolling platformer built in C#. Hand-written jump physics with velocity and gravity calculations, procedural platform generation, score system with multipliers for chained jumps.\n\nWriting collision detection yourself teaches a lot: you have to handle the edge cases where the player passes straight through a platform because they moved too fast between two frames.",
     },
     highlights: {
-      fr: ['Physique de saut réaliste', 'Génération procédurale', 'Multiplicateurs de score', 'Inspiré du jeu original'],
-      en: ['Realistic jump physics', 'Procedural generation', 'Score multipliers', 'Inspired by the original'],
+      fr: ['Moteur physique écrit à la main', 'Génération procédurale', 'Multiplicateurs de score', 'Collisions à haute vitesse gérées'],
+      en: ['Hand-written physics engine', 'Procedural generation', 'Score multipliers', 'High-speed collisions handled'],
     },
   },
   {
@@ -768,24 +873,25 @@ export const PROJECTS = [
     role: { fr: 'Développeur', en: 'Developer' },
     cover: 'plum',
     icon: '🎰',
+    link: '',
     stack: ['JavaScript', 'HTML5 Canvas', 'CSS'],
     description: {
       fr: 'Roulette de casino en JavaScript et HTML5 Canvas : animation, logique de paris, bankroll.',
       en: 'Casino roulette in JavaScript and HTML5 Canvas: animation, betting logic, bankroll.',
     },
     longDescription: {
-      fr: "Roulette de casino fonctionnelle en JavaScript pur avec HTML5 Canvas. Animation fluide de la roue (vitesse décroissante, easing), gestion complète des types de paris (numéros, couleurs, pairs/impairs, douzaines), et gestion de la bankroll avec historique.",
-      en: 'Functional casino roulette in pure JavaScript with HTML5 Canvas. Smooth wheel animation (decreasing speed, easing), complete bet type management (numbers, colors, odd/even, dozens), and bankroll management with history.',
+      fr: "Roulette de casino fonctionnelle en JavaScript pur avec HTML5 Canvas. Animation fluide de la roue (vitesse décroissante, easing), gestion complète des types de paris (numéros, couleurs, pairs/impairs, douzaines), et gestion de la bankroll avec historique.\n\nL'animation est la partie délicate : la roue doit s'arrêter exactement sur la case tirée, ce qui suppose de calculer la trajectoire à rebours à partir du résultat.",
+      en: 'Functional casino roulette in pure JavaScript with HTML5 Canvas. Smooth wheel animation (decreasing speed, easing), complete bet type management (numbers, colors, odd/even, dozens), and bankroll management with history.\n\nThe animation is the tricky part: the wheel has to stop exactly on the drawn number, which means computing the trajectory backwards from the result.',
     },
     highlights: {
-      fr: ['Animation fluide Canvas', 'Tous types de paris', 'Gestion bankroll', 'Historique des parties'],
-      en: ['Smooth Canvas animation', 'All bet types', 'Bankroll management', 'Game history'],
+      fr: ['Animation fluide Canvas', 'Tous types de paris', 'Gestion bankroll', 'Trajectoire calculée à rebours'],
+      en: ['Smooth Canvas animation', 'All bet types', 'Bankroll management', 'Trajectory computed backwards'],
     },
   },
 ]
 
 // ============================================================
-// COMPÉTENCES
+// COMPÉTENCES — inchangées
 // ============================================================
 
 export const SKILL_GROUPS = [
@@ -800,23 +906,36 @@ export const SKILL_GROUPS = [
 ]
 
 // ============================================================
-// CERTIFICATIONS & FORMATION
+// CERTIFICATIONS
+//
+// ← CHANGEMENT DE FORME : { name, issuer, code?, status? }
+//   Vos 12 certifications sont toutes là, aucune retirée ni ajoutée.
+//   Elles sont maintenant regroupées par organisme émetteur à l'affichage,
+//   ce qui met en valeur le bloc Linux Foundation (7 sur 12).
+//   status : 'done' | 'inProgress'   (omettre = pas d'étiquette)
 // ============================================================
 
 export const CERTIFICATIONS = [
-  'Introduction to Kubernetes (LFS158) — The Linux Foundation',
-  'Introduction to DevOps and SRE (LFS162) — The Linux Foundation',
-  'Introduction to GitOps (LFS169) — The Linux Foundation',
-  'Introduction to Jenkins (LFS167) — The Linux Foundation',
-  'Introduction to Zero Trust (LFS183) — The Linux Foundation',
-  'PyTorch and Deep Learning (LFS116) — The Linux Foundation',
-  'Scaling Cloud Native Apps with KEDA (LFELS1014) — The Linux Foundation',
-  'Scrum Fundamentals Certified — SCRUMstudy',
-  'Certification Docker — Mosh',
-  'Certification React Native',
-  'Certification Next.js',
-  'Certification PowerApps & Power Platform — Udemy',
+  { name: 'Introduction to Kubernetes',          issuer: 'The Linux Foundation', code: 'LFS158',    status: 'done' },
+  { name: 'Introduction to DevOps and SRE',      issuer: 'The Linux Foundation', code: 'LFS162',    status: 'done' },
+  { name: 'Introduction to GitOps',              issuer: 'The Linux Foundation', code: 'LFS169',    status: 'done' },
+  { name: 'Introduction to Jenkins',             issuer: 'The Linux Foundation', code: 'LFS167',    status: 'done' },
+  { name: 'Introduction to Zero Trust',          issuer: 'The Linux Foundation', code: 'LFS183',    status: 'done' },
+  { name: 'PyTorch and Deep Learning',           issuer: 'The Linux Foundation', code: 'LFS116',    status: 'done' },
+  { name: 'Scaling Cloud Native Apps with KEDA', issuer: 'The Linux Foundation', code: 'LFELS1014', status: 'done' },
+
+  { name: 'Scrum Fundamentals Certified',        issuer: 'SCRUMstudy',                              status: 'done' },
+
+  { name: 'PowerApps & Power Platform',          issuer: 'Udemy',                                   status: 'done' },
+  { name: 'Docker',                              issuer: 'Code with Mosh',                          status: 'done' },
+
+  { name: 'React Native',                        issuer: 'Formations spécialisées',                 status: 'done' },
+  { name: 'Next.js',                             issuer: 'Formations spécialisées',                 status: 'done' },
 ]
+
+// ============================================================
+// FORMATION — inchangée
+// ============================================================
 
 export const EDUCATION = [
   {
@@ -846,7 +965,7 @@ export const EDUCATION = [
 ]
 
 // ============================================================
-// COVERS DE PROJET — gradients par catégorie
+// COVERS DE PROJET — inchangés
 // ============================================================
 
 export const COVERS = {

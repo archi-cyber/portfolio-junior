@@ -8,6 +8,7 @@ import {
   CERTIFICATIONS,
   EDUCATION,
   COVERS,
+  CATEGORY_ORDER,
 } from './data.js'
 
 /* ============================================================
@@ -414,10 +415,20 @@ function ProjectCover({ project, large = false }) {
   const cover = COVERS[project.cover] || COVERS.warm
   return (
     <div
-      className={`project-cover ${large ? 'aspect-[3/2] md:aspect-[16/6]' : 'aspect-[16/9]'} w-full flex items-end p-6 md:p-8`}
+      className={`project-cover relative ${large ? 'aspect-[3/2] md:aspect-[16/6]' : 'aspect-[16/9]'} w-full flex items-end p-6 md:p-8`}
       style={{ background: cover.gradient }}
     >
       <div className="w-full">
+        {project.icon && (
+          <div
+            aria-hidden
+            className={`absolute top-5 right-6 select-none pointer-events-none opacity-90 ${
+              large ? 'text-4xl md:text-6xl' : 'text-3xl'
+            }`}
+          >
+            {project.icon}
+          </div>
+        )}
         <div className="font-mono text-[10px] md:text-xs uppercase tracking-widest text-white/80 mb-2">
           {project.year} · {project.id}
         </div>
@@ -573,11 +584,15 @@ function Projects() {
   const ref = useReveal()
   const [filter, setFilter] = useState('all')
 
-  // Ordre de filtres stable et lisible plutôt qu'un ordre dicté par les données.
+  // Ordre de filtres stable, défini dans data.js (CATEGORY_ORDER) plutôt que
+  // dicté par l'ordre d'apparition des projets dans le tableau.
   const categories = useMemo(() => {
-    const order = ['web', 'mobile', 'devops', 'infra', 'desktop', 'game']
     const present = new Set(PROJECTS.map((p) => p.category))
-    return ['all', ...order.filter((c) => present.has(c))]
+    const ordered = CATEGORY_ORDER.filter((c) => present.has(c))
+    // Filet de sécurité : une catégorie présente mais absente de CATEGORY_ORDER
+    // reste affichée, à la fin, plutôt que de disparaître silencieusement.
+    const extras = [...present].filter((c) => !CATEGORY_ORDER.includes(c))
+    return ['all', ...ordered, ...extras]
   }, [])
 
   const filtered = filter === 'all' ? PROJECTS : PROJECTS.filter((p) => p.category === filter)
