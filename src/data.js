@@ -59,7 +59,7 @@ export const UI = {
       scroll: 'Défiler',
       stats: [
         { value: '4+', label: "Années d'expérience" },
-        { value: '18', label: 'Projets livrés' },   // ← 18 projets réels dans le tableau
+        { value: '19', label: 'Projets livrés' },
         { value: '12', label: 'Certifications' },   // ← 12 entrées réelles
         { value: '2', label: 'Langues' },
       ],
@@ -176,7 +176,7 @@ export const UI = {
       scroll: 'Scroll',
       stats: [
         { value: '4+', label: 'Years of experience' },
-        { value: '18', label: 'Projects shipped' },
+        { value: '19', label: 'Projects shipped' },
         { value: '12', label: 'Certifications' },
         { value: '2', label: 'Languages' },
       ],
@@ -458,6 +458,43 @@ export const PROJECTS = [
         'JWT auth with role management (admin, manager, employee)',
         'Secured: CORS, validation, SQL injection and XSS prevention',
         'Complete technical documentation and user guides',
+      ],
+    },
+  },
+  // ← NOUVEAU PROJET
+  {
+    id: 'oracle-apex',
+    category: 'web-mobile',
+    title: 'Application de gestion — Oracle APEX',
+    year: '2026',
+    role: { fr: 'Développeur Oracle APEX', en: 'Oracle APEX Developer' },
+    cover: 'steel',
+    icon: '🗄️',
+    featured: true,
+    link: '', // ← lien vers l'espace de travail APEX ou le dépôt des scripts
+    stack: ['Oracle APEX', 'PL/SQL', 'Oracle SQL', 'JavaScript', 'CSS', 'HTML'],
+    description: {
+      fr: "Application complète de suivi des activités et de gestion de projet développée avec Oracle APEX : modèle de données, formulaires, rapports interactifs et traitements PL/SQL.",
+      en: 'Complete activity tracking and project management application built with Oracle APEX: data model, forms, interactive reports and PL/SQL business logic.',
+    },
+    longDescription: {
+      fr: "Application de gestion interne développée de bout en bout avec Oracle APEX. J'ai conçu le modèle de données — tables, contraintes et relations — puis construit l'interface : formulaires de saisie, rapports interactifs avec filtres et regroupements, et processus de validation côté serveur.\n\nLes traitements métier complexes sont écrits en PL/SQL plutôt que dispersés dans l'interface : la logique reste au plus près des données, ce qui la rend testable et réutilisable par n'importe quel point d'entrée. Les contrôles de sécurité s'appuient sur les rôles applicatifs, avec une autorisation vérifiée à chaque page et à chaque processus.\n\nL'interface par défaut d'APEX a été personnalisée en JavaScript et en CSS pour améliorer l'ergonomie des écrans les plus utilisés.",
+      en: "Internal management application built end to end with Oracle APEX. I designed the data model — tables, constraints and relationships — then built the interface: entry forms, interactive reports with filters and grouping, and server-side validation processes.\n\nComplex business logic lives in PL/SQL rather than scattered across the interface: the logic stays close to the data, which makes it testable and reusable from any entry point. Security controls rely on application roles, with authorization checked on every page and every process.\n\nThe default APEX interface was customized in JavaScript and CSS to improve usability on the most-used screens.",
+    },
+    highlights: {
+      fr: [
+        'Modèle de données conçu de zéro : tables, contraintes et relations',
+        'Formulaires, rapports interactifs et processus de validation',
+        'Traitements métier en PL/SQL, au plus près des données',
+        'Contrôles de sécurité par rôles, vérifiés à chaque page et processus',
+        'Interface personnalisée en JavaScript et CSS',
+      ],
+      en: [
+        'Data model designed from scratch: tables, constraints and relationships',
+        'Forms, interactive reports and validation processes',
+        'Business logic in PL/SQL, close to the data',
+        'Role-based security checked on every page and process',
+        'Interface customized in JavaScript and CSS',
       ],
     },
   },
@@ -895,10 +932,10 @@ export const PROJECTS = [
 // ============================================================
 
 export const SKILL_GROUPS = [
-  { key: 'languages', items: ['JavaScript', 'TypeScript', 'Python', 'Java', 'C#', 'PHP', 'SQL', 'Bash'] },
+  { key: 'languages', items: ['SQL', 'PL/SQL', 'JavaScript', 'TypeScript', 'Python', 'Java', 'C#', 'PHP', 'Bash'] },
   { key: 'frontend', items: ['React', 'Next.js', 'Vue.js', 'Angular', 'React Native', 'Tailwind', 'Redux', 'Figma'] },
   { key: 'backend', items: ['Node.js', 'Express', 'NestJS', 'Django', 'Flask', 'Spring Boot', 'REST', 'GraphQL'] },
-  { key: 'databases', items: ['PostgreSQL', 'MySQL', 'SQL Server', 'MongoDB', 'Redis', 'Firebase'] },
+  { key: 'databases', items: ['Oracle', 'Oracle APEX', 'PostgreSQL', 'MySQL', 'SQL Server', 'MongoDB', 'Redis', 'Firebase'] },
   { key: 'devops', items: ['Docker', 'Kubernetes', 'Jenkins', 'GitLab CI', 'GitHub Actions', 'Terraform', 'Ansible', 'ArgoCD'] },
   { key: 'cloud', items: ['AWS (EC2, S3, Lambda, RDS)', 'Azure', 'CloudFormation'] },
   { key: 'monitoring', items: ['ELK Stack', 'Prometheus', 'Grafana', 'Datadog', 'Fluentd'] },
@@ -947,20 +984,20 @@ export const EDUCATION = [
     school: "Collège O'Sullivan de Québec",
   },
   {
-    period: '2017-2020',
+    period: '2017 — 2020',
     degree: {
       fr: "Baccalauréat en Technologie de l'information",
       en: "Bachelor's in Information Technology",
     },
-    school: 'Equivalence diplome MIFI',
+    school: 'Institut supérieur Istag, Cameroun',
   },
   {
-    period: '2017-2019',
+    period: '2017 — 2019',
     degree: {
       fr: 'DEC en Télécommunications',
       en: 'DEC in Telecommunications',
     },
-    school: 'Equivalence diplome MIFI',
+    school: 'Institut supérieur Istag, Cameroun',
   },
 ]
 
@@ -984,5 +1021,10 @@ export const COVERS = {
   plum: {
     gradient: 'linear-gradient(135deg, #b388eb 0%, #5e2e6e 50%, #2d1238 100%)',
     bg: '#5e2e6e',
+  },
+  // ← NOUVEAU : cover dédié au projet Oracle, distinct des quatre autres
+  steel: {
+    gradient: 'linear-gradient(135deg, #6c8ae4 0%, #2c3e8f 50%, #131a3d 100%)',
+    bg: '#2c3e8f',
   },
 }
